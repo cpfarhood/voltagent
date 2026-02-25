@@ -1,0 +1,141 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voltagent
+  namespace: voltagent
+  labels:
+    app: voltagent
+    component: ai-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voltagent
+  template:
+    metadata:
+      labels:
+        app: voltagent
+        component: ai-platform
+    spec:
+      serviceAccountName: voltagent
+      containers:
+      - name: voltagent
+        image: ghcr.io/cpfarhood/voltagent:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3141
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "3141"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: voltagent-config
+              key: LOG_LEVEL
+        - name: LLM_PROVIDER
+          valueFrom:
+            configMapKeyRef:
+              name: voltagent-config
+              key: LLM_PROVIDER
+        - name: LLM_MODEL
+          valueFrom:
+            configMapKeyRef:
+              name: voltagent-config
+              key: LLM_MODEL
+        - name: MEMORY_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: voltagent-config
+              key: MEMORY_TYPE
+        - name: LIBSQL_URL
+          value: "file:///data/memory.db"
+        # API Keys from Secret
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voltagent-secret
+              key: OPENAI_API_KEY
+              optional: true
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voltagent-secret
+              key: ANTHROPIC_API_KEY
+              optional: true
+        - name: GOOGLE_GENERATIVE_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voltagent-secret
+              key: GOOGLE_API_KEY
+              optional: true
+        - name: VOLTOPS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voltagent-secret
+              key: VOLTOPS_API_KEY
+              optional: true
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: kube-config
+          mountPath: /app/.kube
+          readOnly: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: voltagent-data
+      - name: kube-config
+        secret:
+          secretName: voltagent-kubeconfig
+          optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voltagent
+  namespace: voltagent
+  labels:
+    app: voltagent
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3141
+    targetPort: 3141
+    name: http
+  selector:
+    app: voltagent
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: voltagent-data
+  namespace: voltagent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ceph-block

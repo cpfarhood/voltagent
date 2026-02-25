@@ -1,0 +1,42 @@
+{
+  "name": "voltagent-kubernetes",
+  "version": "1.0.0",
+  "description": "VoltAgent AI Platform for Kubernetes deployment",
+  "author": "Chris Farhood <chris@farhood.org>",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch --env-file=.env ./src",
+    "start": "node dist/index.js",
+    "volt": "volt"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@ai-sdk/google": "^1.0.0",
+    "@ai-sdk/openai": "^1.0.0",
+    "@voltagent/core": "^2.6.1",
+    "@voltagent/libsql": "^2.1.2",
+    "@voltagent/logger": "^2.0.2",
+    "@voltagent/mcp": "^2.0.0",
+    "@voltagent/server-hono": "^2.0.7",
+    "ai": "^6.0.0",
+    "dotenv": "^16.4.5",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "voltagent",
+    "kubernetes"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cpfarhood/voltagent.git"
+  }
+}
