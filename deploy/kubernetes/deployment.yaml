@@ -53,28 +53,24 @@ spec:
       serviceAccountName: voltagent
       containers:
       - name: runner
-        image: myoung34/github-runner:latest
+        image: summerwind/actions-runner:latest
         imagePullPolicy: Always
         env:
-        - name: RUNNER_NAME_PREFIX
-          value: "voltagent"
-        - name: ACCESS_TOKEN
+        - name: GITHUB_TOKEN
           valueFrom:
             secretKeyRef:
               name: voltagent-secret
               key: GITHUB_TOKEN
-        - name: RUNNER_SCOPE
-          value: "org"
-        - name: ORG_NAME
+        - name: GITHUB_OWNER
           value: "cpfarhood"
-        - name: LABELS
+        - name: RUNNER_LABELS
           value: "self-hosted,linux,x64,kubernetes,voltagent"
-        - name: RUNNER_GROUP
-          value: "default"
-        - name: EPHEMERAL
+        - name: RUNNER_NAME
+          value: "voltagent-$(HOSTNAME)"
+        - name: RUNNER_WORKDIR
+          value: "/runner/work"
+        - name: EPHEMERAL_RUNNER
           value: "false"
-        - name: DISABLE_AUTO_UPDATE
-          value: "true"
         resources:
           requests:
             memory: "256Mi"
@@ -85,6 +81,8 @@ spec:
         volumeMounts:
         - name: docker-sock
           mountPath: /var/run/docker.sock
+        - name: work
+          mountPath: /runner/work
       - name: docker-dind
         image: docker:24-dind
         securityContext:
@@ -108,6 +106,8 @@ spec:
       - name: docker-sock
         emptyDir: {}
       - name: docker-storage
+        emptyDir: {}
+      - name: work
         emptyDir: {}
 ---
 apiVersion: v1
