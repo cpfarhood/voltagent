@@ -61,12 +61,14 @@ spec:
             secretKeyRef:
               name: voltagent-secret
               key: GITHUB_TOKEN
+        - name: RUNNER_ORG
+          value: "cpfarhood"
         - name: GITHUB_OWNER
           value: "cpfarhood"
         - name: RUNNER_LABELS
           value: "self-hosted,linux,x64,kubernetes,voltagent"
         - name: RUNNER_NAME
-          value: "voltagent-$(HOSTNAME)"
+          value: "voltagent"
         - name: RUNNER_WORKDIR
           value: "/runner/work"
         - name: EPHEMERAL_RUNNER
